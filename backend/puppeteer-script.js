@@ -15,7 +15,7 @@ async function extractAndTranslateText(url, targetLanguage) {
         }
 
         for (const node of textNodes) {
-            const translatedText = node.nodeValue.split('').reverse().join(''); // Simulated translation by reversing text
+            const translatedText = node.nodeValue.split('').reverse().join('');  
             node.nodeValue = translatedText;
         }
 

@@ -18,7 +18,7 @@ const Login = () => {
         e.preventDefault();
         const user = { email, password };
         try {
-            const res = await axios.post('http://localhost:3000/api/users/login', user);
+            const res = await axios.post('http://localhost:3001/api/users/login', user);
             console.log(res.data);
             navigate('/home'); // Redirect to home page upon successful login
         } catch (err) {

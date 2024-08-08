@@ -5,8 +5,7 @@ import './home.css';
 const Home = () => {
     const [url, setUrl] = useState('');
     const [language, setLanguage] = useState('');
-    const [iframeUrl, setIframeUrl] = useState('');
-    const [extractedText, setExtractedText] = useState('');
+    const [translatedHTML, setTranslatedHTML] = useState('');
 
     const languages = [
         'Hindi', 'Assamese', 'Bengali', 'Gujarati', 'Kannada', 'Malayalam', 
@@ -15,13 +14,19 @@ const Home = () => {
 
     const onSubmit = async (e) => {
         e.preventDefault();
-        setIframeUrl(url);
+        await extractAndTranslateText(url, language);
+    };
 
+    const extractAndTranslateText = async (url, language) => {
         try {
-            const response = await axios.post('http://localhost:3000/api/textextra/extract-text', { url });
-            setExtractedText(response.data.text);
+            const response = await axios.post('http://localhost:3001/api/textextra/extract-translate-text', {
+                url,
+                targetLanguage: language
+            });
+            setTranslatedHTML(response.data.translatedHTML);
         } catch (error) {
-            console.error('Error fetching extracted text:', error);
+            console.error('Error extracting or translating text:', error);
+            setTranslatedHTML('An error occurred while extracting or translating text.');
         }
     };
 
@@ -57,19 +62,14 @@ const Home = () => {
                 </div>
                 <button type="submit">Submit</button>
             </form>
-            {iframeUrl && (
-                <iframe
-                    src={iframeUrl}
-                    title="Website"
-                    width="100%"
-                    height="500px"
-                    style={{ border: 'none', marginTop: '20px', width: '500px', height: '500px' }}
-                />
-            )}
-            {extractedText && (
-                <div className="extracted-text">
-                    <h2>Extracted Text:</h2>
-                    <p>{extractedText}</p>
+
+            {translatedHTML && (
+                <div className="iframe-container">
+                    <h2>Translated Page:</h2>
+                    <iframe
+                        srcDoc={translatedHTML}
+                        title="Translated Page"
+                    />
                 </div>
             )}
         </div>

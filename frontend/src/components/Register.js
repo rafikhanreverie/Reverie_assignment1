@@ -20,7 +20,7 @@ const Register = () => {
         e.preventDefault();
         const newUser = { name, email, password };
         try {
-            await axios.post('http://localhost:3000/api/users/register', newUser);
+            await axios.post('http://localhost:3001/api/users/register', newUser);
             setSuccess(true);
             setTimeout(() => navigate('/login'), 2000); // Navigate to login after 8 seconds
         } catch (err) {

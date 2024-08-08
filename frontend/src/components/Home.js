@@ -30,8 +30,21 @@ const Home = () => {
         }
     };
 
+    const handleLogout = () => {
+        // Clear any stored authentication tokens, session data, etc.
+        localStorage.removeItem('authToken');
+        // Redirect to the login page or home page
+        window.location.href = '/login'; // Update this to your login page path
+    };
+
+
     return (
         <div className="home-container">
+            {/* add a logout button */}
+            <button onClick={handleLogout} className="logout-button">
+                Logout
+            </button>
+
             <form onSubmit={onSubmit}>
                 <div>
                     <label htmlFor="url">Website URL:</label>

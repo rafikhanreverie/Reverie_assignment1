@@ -50,6 +50,7 @@ const Login = () => {
                         placeholder="Password"
                         required 
                     />
+                    <p>Don't have an account? <a href="/register">Register</a></p>
                     <button type="submit">Login</button>
                 </form>
             </div>

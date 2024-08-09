@@ -8,8 +8,18 @@ const Home = () => {
     const [translatedHTML, setTranslatedHTML] = useState('');
 
     const languages = [
-        'Hindi', 'Assamese', 'Bengali', 'Gujarati', 'Kannada', 'Malayalam', 
-        'Marathi', 'Odia', 'Punjabi', 'Tamil', 'Telugu', 'English'
+        { code: 'hi', label: 'Hindi' },
+        { code: 'as', label: 'Assamese' },
+        { code: 'bn', label: 'Bengali' },
+        { code: 'gu', label: 'Gujarati' },
+        { code: 'kn', label: 'Kannada' },
+        { code: 'ml', label: 'Malayalam' },
+        { code: 'mr', label: 'Marathi' },
+        { code: 'or', label: 'Odia' },
+        { code: 'pa', label: 'Punjabi' },
+        { code: 'ta', label: 'Tamil' },
+        { code: 'te', label: 'Telugu' },
+        { code: 'en', label: 'English' }
     ];
 
     const onSubmit = async (e) => {
@@ -20,9 +30,11 @@ const Home = () => {
     const extractAndTranslateText = async (url, language) => {
         try {
             const response = await axios.post('http://localhost:3001/api/textextra/extract-translate-text', {
-                url,
-                targetLanguage: language
+                url: url,
+                targetLanguage: language,
             });
+
+            console.log('Translated HTML received:', response.data.translatedHTML);  // Log the received HTML
             setTranslatedHTML(response.data.translatedHTML);
         } catch (error) {
             console.error('Error extracting or translating text:', error);
@@ -30,21 +42,8 @@ const Home = () => {
         }
     };
 
-    const handleLogout = () => {
-        // Clear any stored authentication tokens, session data, etc.
-        localStorage.removeItem('authToken');
-        // Redirect to the login page or home page
-        window.location.href = '/login'; // Update this to your login page path
-    };
-
-
     return (
         <div className="home-container">
-            {/* add a logout button */}
-            <button onClick={handleLogout} className="logout-button">
-                Logout
-            </button>
-
             <form onSubmit={onSubmit}>
                 <div>
                     <label htmlFor="url">Website URL:</label>
@@ -67,8 +66,8 @@ const Home = () => {
                     >
                         <option value="" disabled>Select a language</option>
                         {languages.map((lang) => (
-                            <option key={lang} value={lang}>
-                                {lang}
+                            <option key={lang.code} value={lang.code}>
+                                {lang.label}
                             </option>
                         ))}
                     </select>
@@ -82,6 +81,9 @@ const Home = () => {
                     <iframe
                         srcDoc={translatedHTML}
                         title="Translated Page"
+                        width="100%"
+                        height="500px"
+                        style={{ border: 'none', marginTop: '20px' }}
                     />
                 </div>
             )}

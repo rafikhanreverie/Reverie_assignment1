@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const cors = require('cors');
 const connectDB = require('./db');
+const indexRouter= require('./apiRouter/indexRouter');
 
 dotenv.config();
 const app = express();
@@ -13,8 +14,9 @@ app.use(express.json());
 
 connectDB();
 
-app.use('/api/users', require('./api/users'));
-app.use('/api/textextra', require('./api/textextra'));
+Object.keys(indexRouter).forEach((key)=> {
+   return app.use(`/api/${key}`,indexRouter[key]);
+});
 
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);

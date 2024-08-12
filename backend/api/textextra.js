@@ -14,7 +14,7 @@ router.post('/extract-translate-text', async (req, res) => {
     try {
         console.log(`Received request to translate: URL=${url}, targetLanguage=${targetLanguage}`);
         const { translatedHTML } = await extractAndTranslateText(url, targetLanguage);
-        console.log('Translated HTML:', translatedHTML);  // Log the translated HTML
+        // console.log('Translated HTML:', translatedHTML);  // Log the translated HTML
         res.json({ translatedHTML });
     } catch (error) {
         console.error('Error during translation process:', error.message);

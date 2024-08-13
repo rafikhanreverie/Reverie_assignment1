@@ -3,11 +3,11 @@ const Translation = require('../models/Translation');
 
 async function extractAndTranslateText(url, targetLanguage) {
     try {
-        const existingTranslation = await Translation.findOne({ url, language: targetLanguage });
-        if (existingTranslation) {
-            console.log('Translation found in database');
-            return { translatedHTML: existingTranslation.translatedHTML };
-        }
+        // const existingTranslation = await Translation.findOne({ url, language: targetLanguage });
+        // if (existingTranslation) {
+        //     console.log('Translation found in database');
+        //     return { translatedHTML: existingTranslation.translatedHTML };
+        // }
 
         const browser = await puppeteer.launch({ headless: true });
         const page = await browser.newPage();

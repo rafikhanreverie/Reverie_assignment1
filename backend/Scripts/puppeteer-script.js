@@ -64,8 +64,8 @@ async function extractAndTranslateText(url, targetLanguage) {
 
         await browser.close();
 
-        const newTranslation = new Translation({ url, language: targetLanguage, translatedHTML });
-        await newTranslation.save();
+        // const newTranslation = new Translation({ url, language: targetLanguage, translatedHTML });
+        // await newTranslation.save();
 
         return { translatedHTML };
     } catch (error) {

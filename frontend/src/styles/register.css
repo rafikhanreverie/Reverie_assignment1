@@ -6,14 +6,14 @@
     width: 100%;
     flex-direction: row;
     background: linear-gradient(135deg, #ff6600 50%, white 50%);
-    position: relative;
-  
+    
+    padding: 20px;
     box-sizing: border-box;
 }
 
 .register-container {
-    max-width: 300px;
-    width: 80%;
+    max-width: 400px;
+    width: 100%;
     margin: auto;
     padding: 20px;
     background-color: white;
@@ -22,6 +22,7 @@
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     transition: opacity 1s ease-out;
     z-index: 10;
+    height: 98%;
 }
 
 .register-container.fade-out {
@@ -33,7 +34,8 @@
     text-align: center;
     color: #ff6600;
     font-size: 24px;
-    margin-bottom: 20px;
+    margin-bottom: 30px;
+    font-weight: bold;
 }
 
 .register-container form {
@@ -41,24 +43,31 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    height: 90%;
+    gap: -200px;
+
 }
 
 .register-container input {
-    margin-bottom: 15px;
-    
+    margin-bottom: 0px;
+     width: 90%;
+     height: 40px; /* Ensure input fields span the entire width of the form */
+    padding: 10px;
     border: 1px solid #ddd;
     border-radius: 8px;
     font-size: 16px;
 }
 
 .register-container button {
-    padding: 12px;
+    padding: 10px;
     border: none;
     border-radius: 8px;
     background-color: #ff6600;
     color: white;
     font-size: 18px;
     cursor: pointer;
+    width: 80%;
+    font-weight: bold;
     transition: background-color 0.3s ease;
 }
 

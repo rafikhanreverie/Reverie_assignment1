@@ -1,9 +1,8 @@
-@import url('https://fonts.googleapis.com/css2?family=Jaldi&family=Nunito+Sans:opsz,wght@6..12,300&family=Radio+Canada+Big:ital,wght@0,400..700;1,400..700&display=swap');
 .landing-page {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
-    background: linear-gradient(135deg, #ebe5ff 50%, #d63031 50%);
+    background: linear-gradient(135deg, white 50%, #ff6600 50%);
     background-color: #f0f8ff;
     overflow: hidden;
     position: relative;
@@ -32,7 +31,7 @@ header {
     width: 80px;
     text-decoration: none;
     color: white;
-    background-color: #d63031;
+    background-color: #ff6600;
     border-radius: 10px;
     font-size: 16px;
     font-weight: 600;
@@ -49,16 +48,12 @@ header {
 }
 
 .text {
-    /* font-family: 'Impact', sans-serif; */
-    font-family: "Radio Canada Big", sans-serif;
-    font-optical-sizing: auto;
-    font-weight: 700;
-    font-style: normal;
+    font-family: 'Impact', sans-serif;
     max-width: 900px;
     font-size: 100px;
     font-weight: 900;
     letter-spacing: 2px;
-    background-image: url("../images/head.jpg");
+    background-image: url("https://img.freepik.com/free-photo/top-view-colorful-letters-arrangement_23-2148643807.jpg?ga=GA1.1.1693751119.1692794865&semt=ais_hybrid");
     background-size: cover;
     background-clip: text;
     -webkit-background-clip: text;

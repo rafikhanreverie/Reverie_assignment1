@@ -44,6 +44,7 @@ const App = () => {
               <Home />
             </ProtectedRoute>
           } />
+          
         </Routes>
       </AuthProvider>
     </Router>

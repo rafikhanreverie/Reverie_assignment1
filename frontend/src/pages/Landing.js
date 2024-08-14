@@ -1,5 +1,7 @@
 import React from 'react';
 import '../styles/landing.css';
+import rocketImg from '../images/rocket.png'; // Add the rocket image
+import cloudImg from '../images/cloud.png';  // Add the cloud image
 
 const Landing = () => {
   return (
@@ -10,19 +12,22 @@ const Landing = () => {
           <a href="/register" className="button">Signup</a>
         </div>
       </header>
-      <main>
+      <div className='landing-main'>
         <div className="test-section">
-          <h1>Language Localization</h1>
-          <p>Languages Localization of websites</p>
-          <ul>
-            <li><strong>Hindi:</strong> नमस्ते, आप कैसे हैं?</li>
-            <li><strong>Bengali:</strong> হ্যালো, আপনি কেমন আছেন?</li>
-            <li><strong>Gujarati:</strong> હેલો, કેમ છો?</li>
-            <li><strong>Odia:</strong> ହେଲୋ, ଆପଣ କେମିତି ଅଛନ୍ତି?</li>
-            <li><strong>Punjabi:</strong> ਸਤ ਸ੍ਰੀ ਅਕਾਲ, ਤੁਸੀਂ ਕਿਵੇਂ ਹੋ?</li>
-          </ul>
+          <h1 className="text">Reverie Language Technologies</h1>
+         
         </div>
-      </main>
+        <div className='animation-section'>
+        
+        <img src={rocketImg} alt="Rocket" className="rocket" />
+        <div className='cloud-section'>
+
+        <img src={cloudImg} alt="Cloud" className="cloud cloud-1" />
+        <img src={cloudImg} alt="Cloud" className="cloud cloud-2" />
+        </div>
+       
+        </div>
+      </div>
     </div>
   );
 };

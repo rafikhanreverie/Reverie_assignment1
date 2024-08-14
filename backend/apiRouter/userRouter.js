@@ -43,12 +43,13 @@
 
 
 const express = require('express');
-const { registerUser, loginUser } = require('../apiController/userController');
+const { registerUser, loginUser,getUserData } = require('../apiController/userController');
+const authenticateToken = require('../middleware/authenticateToken');
 
 const router = express.Router();
 
 router.post('/register', registerUser);
 router.post('/login', loginUser);
-
+router.get('/getUser',authenticateToken,getUserData)
 module.exports = router;
 

@@ -1,3 +1,4 @@
+
 .login-page {
     display: flex;
     justify-content: center;
@@ -5,7 +6,7 @@
     height: 100vh;
     width: 100%;
     flex-direction: row;
-    background: linear-gradient(135deg, white 50%, #ff6600 50%);
+    background: linear-gradient(135deg, white 50%, #d63031 50%);
     box-sizing: border-box;
     padding: 20px;
 }
@@ -97,7 +98,11 @@
     max-width: 500px;
     text-align: center;
     font-size: 24px; /* Increased font size for better visibility */
-    font-weight: bold;
+    
+    font-family: "Radio Canada Big", sans-serif;
+    font-optical-sizing: auto;
+    font-weight: 700;
+    font-style: normal;
 }
 
 .Login-typewriter {

@@ -19,7 +19,9 @@ export const AuthProvider = ({ children }) => {
     }, []);
 
     const login = (token) => {
+        console.log(token);
         localStorage.setItem('authToken', token);
+        
         setAuthToken(token);
         navigate('/home'); // Redirect to home after login
     };

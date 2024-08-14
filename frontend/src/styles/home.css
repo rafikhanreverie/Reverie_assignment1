@@ -104,6 +104,21 @@ button:hover {
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
+#btn-submit {
+    padding: 12px;
+    font-size: 16px;
+    background-color: #f05d0d; /* Corrected the background color */
+    color: #FFF;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#btn-submit:hover {
+    background-color: #ff5900; /* Corrected the hover background color */
+}
+
 
 /* Media query for large devices */
 @media (min-width: 768px) {

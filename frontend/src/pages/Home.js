@@ -1,5 +1,5 @@
 
-import React, { useContext, useState } from 'react';
+import React, { useState, useEffect,useRef,useContext } from 'react';
 import { extractAndTranslateText } from '../api/translate';
 import '../styles/home.css';
 import { AuthContext } from '../context/AuthContext';
@@ -25,6 +25,23 @@ const Home = () => {
         { code: 'te', label: 'Telugu' },
         { code: 'en', label: 'English' }
     ];
+
+
+    const alertShown=useRef(false);
+    // Detect user's browser language and set it as the default language
+    useEffect(() => {
+        if(!alertShown.current){
+        // console.log('useEffect is running');
+        const browserLanguage = navigator.language.split('-')[0]; // Extract the language code
+        // console.log("Selected Language",browserLanguage)
+        const defaultLanguage = languages.find(lang => lang.code === browserLanguage) ? browserLanguage : 'en';
+        const languageLabel=languages.find(lang =>lang.code === defaultLanguage)?.label ||'English';
+        setLanguage(defaultLanguage);
+        alert(`Your Browser  Language is ${languageLabel}`)
+        alertShown.current=true;
+}
+    }, []);
+    
 
     const onSubmit = async (e) => {
         e.preventDefault();
@@ -70,7 +87,7 @@ const Home = () => {
                             ))}
                         </select>
                     </div>
-                    <button type="submit">Submit</button>
+                    <button id="btn-submit" type="submit">Submit</button>
                 </form>
 
                 {error && <div className="error-message">{error}</div>}

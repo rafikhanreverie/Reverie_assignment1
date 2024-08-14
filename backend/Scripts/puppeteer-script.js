@@ -11,10 +11,25 @@ async function extractAndTranslateText(url, targetLanguage) {
 
         const browser = await puppeteer.launch({ headless: true });
         const page = await browser.newPage();
-
+        // Regex to match email addresses and phone numbers
+        const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
+        const phoneRegex = /\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/g;
         await page.exposeFunction('reverseText', (text) => {
-            return text.split('').reverse().join('');
-        });
+
+            const filteredText = text.replace(/[^a-zA-Z0-9\s]/g, '');
+            console.log(filteredText)
+            // Check if the filtered text matches email or phone number
+
+            if (emailRegex.test(text) || phoneRegex.test(text)) {
+                return text;
+
+            }
+            // Reverse the text otherwise
+            else {
+                return filteredText.split('').reverse().join('');
+            }
+
+        })
 
         // Reverie NMT API
 
@@ -37,7 +52,7 @@ async function extractAndTranslateText(url, targetLanguage) {
         //                 },
         //             }
         //         );
-        
+
         //         return response.data.responseList[0].outString;
         //     } catch (error) {
         //         console.error('Error in translateText:', error.response ? error.response.data : error.message);

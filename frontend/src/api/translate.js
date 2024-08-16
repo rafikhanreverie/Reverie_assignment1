@@ -11,3 +11,22 @@ export const extractAndTranslateText = async (url, language) => {
     throw new Error(error.response?.data?.message || 'Error extracting or translating text');
   }
 };
+
+
+export const saveEditedPage = async (url, language, editedHTML, token) => {
+  try {
+      await axios.post('http://localhost:3001/api/textextract/saveEditedPage', {
+          url,
+          language,
+          editedHTML
+      }, {
+          headers: {
+              'Authorization': `Bearer ${token}`
+          }
+      });
+      alert('Edits saved successfully!');
+  } catch (error) {
+      console.error('Error saving edited page:', error);
+      alert('Failed to save edits.');
+  }
+};

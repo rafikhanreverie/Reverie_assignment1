@@ -30,6 +30,7 @@ import Login from './components/Login';
 import Register from './components/Register';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
+import Dashboard from './pages/Dashboard';
 
 const App = () => {
   return (
@@ -45,6 +46,7 @@ const App = () => {
             </ProtectedRoute>
           } />
           
+          <Route path="/dashboard" element={<ProtectedRoute><Dashboard/></ProtectedRoute>} />
         </Routes>
       </AuthProvider>
     </Router>

@@ -8,6 +8,18 @@ async function extractAndTranslateText(url, targetLanguage) {
         //     console.log('Translation found in database');
         //     return { translatedHTML: existingTranslation.translatedHTML };
         // }
+        const existingTranslation = await Translation.findOne({ url, language: targetLanguage });
+        if (existingTranslation) {
+            console.log('Translation found in database');
+            
+            // Check if editedHTML exists
+            const htmlToReturn = existingTranslation.editedHTML 
+                ? existingTranslation.editedHTML 
+                : existingTranslation.translatedHTML;
+            
+            return { translatedHTML: htmlToReturn };
+        }
+
 
         const browser = await puppeteer.launch({ headless: true });
         const page = await browser.newPage();
@@ -17,7 +29,7 @@ async function extractAndTranslateText(url, targetLanguage) {
         await page.exposeFunction('reverseText', (text) => {
 
             const filteredText = text.replace(/[^a-zA-Z0-9\s]/g, '');
-            console.log(filteredText)
+            // console.log(filteredText)
             // Check if the filtered text matches email or phone number
 
             if (emailRegex.test(text) || phoneRegex.test(text)) {
@@ -79,8 +91,8 @@ async function extractAndTranslateText(url, targetLanguage) {
 
         await browser.close();
 
-        // const newTranslation = new Translation({ url, language: targetLanguage, translatedHTML });
-        // await newTranslation.save();
+        const newTranslation = new Translation({ url, language: targetLanguage, translatedHTML });
+        await newTranslation.save();
 
         return { translatedHTML };
     } catch (error) {

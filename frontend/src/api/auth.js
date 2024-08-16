@@ -1,4 +1,5 @@
 import axios from 'axios';
+const token = localStorage.getItem('authToken');
 
 export const registerUser = async (newUser) => {
   try {
@@ -16,4 +17,21 @@ export const loginUser = async (user) => {
   } catch (error) {
     throw new Error(error.response?.data?.message || 'Error logging in');
   }
+};
+
+
+
+
+export const fetchUserData = async () => {
+    try {
+        const response = await axios.get('http://localhost:3001/api/users/getUser', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching user data:', error);
+        throw error;
+    }
 };

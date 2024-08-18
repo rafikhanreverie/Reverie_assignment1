@@ -361,9 +361,11 @@ const Home = () => {
     const onSubmit = async (e) => {
         e.preventDefault();
         try {
-            const data = await extractAndTranslateText(url, language);
-            setTranslatedHTML(data.translatedHTML);
-            setError('');
+            if (userData && userData._id) {
+                const data = await extractAndTranslateText(url, language, userData._id);
+                setTranslatedHTML(data.translatedHTML);
+                setError('');
+            }
         } catch (err) {
             setError(err.message);
             setTranslatedHTML('');
@@ -403,7 +405,7 @@ const Home = () => {
             const iframeDoc = iframeRef.current.contentDocument;
             const editedHTML = iframeDoc.documentElement.outerHTML;
 
-            console.log("editedHTML", editedHTML);
+            // console.log("editedHTML", editedHTML);
 
             await saveEditedPage(url, language, editedHTML, token); // Use the refactored API
         }

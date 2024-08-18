@@ -8,8 +8,10 @@ const ProfileDrawer = ({ isOpen, onClose, btnRef, userData, logout }) => {
 
 
     const handleDashboardClick = () => {
-        window.open('/dashboard', '_blank'); // This will open the dashboard in a new tab
+        const dashboardUrl = `/dashboard?userId=${encodeURIComponent(userData._id)}`;
+        window.open(dashboardUrl, '_blank'); // Open the dashboard with userId in a new tab
     };
+
 
     return (
         <Drawer

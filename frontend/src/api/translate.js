@@ -1,10 +1,11 @@
 import axios from 'axios';
 
-export const extractAndTranslateText = async (url, language) => {
+export const extractAndTranslateText = async (url, language, userId) => {
   try {
     const response = await axios.post('http://localhost:3001/api/textextract/extract-translate-text', {
       url,
       targetLanguage: language,
+      userId: userId
     });
     return response.data;
   } catch (error) {

@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Heading, Text, SimpleGrid, Button, Table, Thead, Tbody, Tr, Th, Td, useToast } from '@chakra-ui/react';
-import axios from 'axios';
+import { useLocation } from 'react-router-dom'; // Import useLocation hook
 
+import axios from 'axios';
+const token =  localStorage.getItem('authToken');
 // Define the languages array
 const languages = [
     { code: 'hi', label: 'Hindi' },
@@ -30,88 +32,85 @@ const Dashboard = () => {
     const [error, setError] = useState(null);
     const toast = useToast();
 
+    const location = useLocation(); // Get the location object from React Router
+
+    // Extract userId from query parameters
+    const queryParams = new URLSearchParams(location.search);
+    const userId = queryParams.get('userId');
     useEffect(() => {
         const fetchData = async () => {
-            try {
-                const response = await axios.get('http://localhost:3001/api/website-view');
-                setData(response.data);
-                setLoading(false);
-            } catch (err) {
-                setError(err.message);
+            if (userId) {
+                try {
+                    const response = await axios.get('http://localhost:3001/api/website-view', {
+                        params: { userId }  // Pass userId as a query parameter
+                    });
+                    setData(response.data);
+                } catch (err) {
+                    setError(err.message);
+                } finally {
+                    setLoading(false);
+                }
+            } else {
+                setError('User ID is required');
                 setLoading(false);
             }
         };
 
         fetchData();
-    }, []);
-
-    const handleView = (item) => {
-        // Implement view logic, e.g., open a modal or redirect to a detailed page
-        console.log('View item:', item);
-        toast({
-            title: 'View action triggered',
-            description: `Viewing item with URL: ${item.url}`,
-            status: 'info',
-            duration: 3000,
-            isClosable: true,
-        });
-    };
-
-    const handleExport = (item) => {
-        // Implement export logic, e.g., generate a download link
-        const blob = new Blob([item.translatedHTML], { type: 'text/html' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `export-${item.url}.html`;
-        document.body.appendChild(a);
-        a.click();
-        URL.revokeObjectURL(url);
-        toast({
-            title: 'Export successful',
-            description: `Exported item with URL: ${item.url}`,
-            status: 'success',
-            duration: 3000,
-            isClosable: true,
-        });
-    };
-
-    const handleEdit = (item) => {
-        // Implement edit logic, e.g., open a modal or navigate to an edit page
-        console.log('Edit item:', item);
-        toast({
-            title: 'Edit action triggered',
-            description: `Editing item with URL: ${item.url}`,
-            status: 'warning',
-            duration: 3000,
-            isClosable: true,
-        });
-    };
-
-    const handleDelete = async (id) => {
-        try {
-            await axios.delete(`http://localhost:5000/api/website-view/${id}`);
-            setData(data.filter(item => item._id !== id));
-            toast({
-                title: 'Delete successful',
-                description: `Deleted item with ID: ${id}`,
-                status: 'success',
-                duration: 3000,
-                isClosable: true,
-            });
-        } catch (err) {
-            toast({
-                title: 'Delete failed',
-                description: err.message,
-                status: 'error',
-                duration: 3000,
-                isClosable: true,
-            });
-        }
-    };
+    }, [userId]);  // Re-fetch data if userId changes
 
     if (loading) return <Text>Loading...</Text>;
     if (error) return <Text>Error: {error}</Text>;
+
+
+    const handleView = (item) => {
+        const htmlContent = item.editedHTML || item.translatedHTML;
+        const newWindow = window.open('', '_blank');
+        newWindow.document.write(htmlContent);
+        newWindow.document.close(); // Ensures the content is fully loaded
+    };
+    
+
+    const handleExport = (item) => {
+        const csvData = [
+            ['URL', 'Language', 'Edited HTML', 'Translated HTML'], // CSV headers
+            [item.url, languageLookup[item.language] || item.language, item.editedHTML, item.translatedHTML]
+        ];
+    
+        // Convert the array to a CSV string
+        const csvContent = csvData.map(e => e.map(cell => `"${cell}"`).join(",")).join("\n");
+    
+        // Create a Blob from the CSV string
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+    
+        // Create a link element and trigger a download
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `${item.url}_data.csv`); // CSV file name
+        document.body.appendChild(link);
+        link.click();
+    
+        // Clean up and remove the link
+        document.body.removeChild(link);
+    };
+    
+
+    const handleEdit = (item) => {
+        window.open(`/edit-page?url=${encodeURIComponent(item.url)}&lang=${item.language}`, '_blank');
+    };
+
+    const handleDelete = async (id) => {
+        
+            toast({
+                title: 'Deletion successful.',
+                description: 'The item has been deleted.',
+                status: 'success',
+                duration: 5000,
+                isClosable: true,
+            });
+        
+    };
 
     return (
         <Box p={8}>

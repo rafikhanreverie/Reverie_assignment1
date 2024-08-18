@@ -118,39 +118,21 @@ connectDB();
 // API Routes
 app.use('/api', indexRouter);
 
-// Save Edited Page Route
-const saveEditedPage = async (req, res) => {
-    const { url, language, editedHTML } = req.body;
-
-    if (!url || !language || !editedHTML) {
-        return res.status(400).json({ error: 'URL, language, and edited HTML are required' });
-    }
-
-    try {
-        console.log('Received data:', { url, language, editedHTML });
-
-        // Ensure that editedHTML is saved under the correct field
-        const filter = { url, language };
-        const update = { editedHTML, createdAt: new Date() };
-        const options = { upsert: true, new: true };
-
-        const result = await Translation.findOneAndUpdate(filter, update, options);
-        
-        console.log('Database result:', result);
-
-        res.json({ message: 'Edited page saved successfully', data: result });
-    } catch (error) {
-        console.error(`Error saving edited page: ${error.message}`);
-        res.status(500).json({ error: 'Failed to save edited page' });
-    }
-};
-
-app.post('/api/textextract/saveEditedPage', saveEditedPage);
-
-// Fetch Website Data Route
 const fetchWebsiteData = async (req, res) => {
     try {
-        const translations = await Translation.find(); // Fetch all documents
+        const { userId } = req.query; // Get userId from query parameters
+
+        if (!userId) {
+            return res.status(400).json({ error: 'User ID is required' }); // Return error if userId is missing
+        }
+
+        // Fetch documents based on the userId
+        const translations = await Translation.find({ userId });
+
+        if (translations.length === 0) {
+            return res.status(404).json({ message: 'No translations found for this user' });
+        }
+
         res.json(translations);
     } catch (err) {
         console.error('Error fetching translations:', err);
@@ -158,9 +140,8 @@ const fetchWebsiteData = async (req, res) => {
     }
 };
 
+// Example Express setup
 app.get('/api/website-view', fetchWebsiteData);
-
-
 
 // Error Handling Middleware
 app.use((err, req, res, next) => {

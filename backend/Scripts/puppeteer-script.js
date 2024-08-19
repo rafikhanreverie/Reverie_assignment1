@@ -102,8 +102,6 @@
 // }
 
 // module.exports = extractAndTranslateText;
-
-
 const puppeteer = require('puppeteer');
 const Translation = require('../models/Translation');
 
@@ -164,15 +162,15 @@ async function extractAndTranslateText(url, targetLanguage, userId) {
         // Close the browser
         await browser.close();
 
-        // Save the new translation to the database
-        const newTranslation = new Translation({ 
-            url, 
-            language: targetLanguage, 
-            translatedHTML, 
-            userId  // Include userId when saving
-        });
-
-        await newTranslation.save();
+        // Use updateOne with upsert option to prevent duplicates
+        await Translation.updateOne(
+            { url, language: targetLanguage, userId },  // Query to match
+            { 
+                $set: { translatedHTML },               // Update the translatedHTML
+                $setOnInsert: { url, language: targetLanguage, userId }  // Set these fields on insert
+            },
+            { upsert: true }  // Insert if not found, otherwise update
+        );
 
         return { translatedHTML };
     } catch (error) {

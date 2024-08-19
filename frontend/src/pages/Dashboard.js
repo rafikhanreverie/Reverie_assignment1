@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Heading, Text, SimpleGrid, Button, Table, Thead, Tbody, Tr, Th, Td, useToast } from '@chakra-ui/react';
-import { useLocation } from 'react-router-dom'; // Import useLocation hook
+import {
+    Box, Heading, Text, SimpleGrid, Button, Table, Thead, Tbody, Tr, Th, Td,
+    useToast, useDisclosure, Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalFooter, Input
+} from '@chakra-ui/react';
+import { useLocation } from 'react-router-dom';
+import { fetchWebsiteData, viewTranslatedWebsite, deleteWebsiteData } from '../api/dashboardAPI'; // Import API functions
 
-import axios from 'axios';
-const token =  localStorage.getItem('authToken');
+const token = localStorage.getItem('token');
+
 // Define the languages array
 const languages = [
     { code: 'hi', label: 'Hindi' },
@@ -30,21 +34,22 @@ const Dashboard = () => {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [deleteId, setDeleteId] = useState(null);
+    const [inputValue, setInputValue] = useState('');
+    const { isOpen, onOpen, onClose } = useDisclosure();
     const toast = useToast();
-
     const location = useLocation(); // Get the location object from React Router
 
     // Extract userId from query parameters
     const queryParams = new URLSearchParams(location.search);
     const userId = queryParams.get('userId');
+
     useEffect(() => {
         const fetchData = async () => {
             if (userId) {
                 try {
-                    const response = await axios.get('http://localhost:3001/api/website-view', {
-                        params: { userId }  // Pass userId as a query parameter
-                    });
-                    setData(response.data);
+                    const data = await fetchWebsiteData(userId);  // Use the API function
+                    setData(data);
                 } catch (err) {
                     setError(err.message);
                 } finally {
@@ -62,54 +67,90 @@ const Dashboard = () => {
     if (loading) return <Text>Loading...</Text>;
     if (error) return <Text>Error: {error}</Text>;
 
+    const handleView = async (item) => {
+        try {
+            const htmlContent = await viewTranslatedWebsite(item.userId, item.url); // Use the API function
 
-    const handleView = (item) => {
-        const htmlContent = item.editedHTML || item.translatedHTML;
-        const newWindow = window.open('', '_blank');
-        newWindow.document.write(htmlContent);
-        newWindow.document.close(); // Ensures the content is fully loaded
+            // Open a new tab and write the HTML content
+            const newWindow = window.open('', '_blank');
+            newWindow.document.write(htmlContent);
+            newWindow.document.close(); // Ensure the content is fully loaded
+
+            // Disable content editing after the document is fully loaded
+            newWindow.document.addEventListener('DOMContentLoaded', () => {
+                const textNodes = newWindow.document.querySelectorAll('p, h1, h2, h3, h4, h5, h6, span, div, a');
+                textNodes.forEach(node => {
+                    node.contentEditable = false; // Disable editing
+                });
+            });
+        } catch (error) {
+            console.error('Error viewing the translated website:', error);
+            alert('An error occurred while trying to view the translated website.');
+        }
     };
-    
 
     const handleExport = (item) => {
         const csvData = [
             ['URL', 'Language', 'Edited HTML', 'Translated HTML'], // CSV headers
             [item.url, languageLookup[item.language] || item.language, item.editedHTML, item.translatedHTML]
         ];
-    
+
         // Convert the array to a CSV string
         const csvContent = csvData.map(e => e.map(cell => `"${cell}"`).join(",")).join("\n");
-    
+
         // Create a Blob from the CSV string
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
-    
+
         // Create a link element and trigger a download
         const link = document.createElement('a');
         link.href = url;
         link.setAttribute('download', `${item.url}_data.csv`); // CSV file name
         document.body.appendChild(link);
         link.click();
-    
+
         // Clean up and remove the link
         document.body.removeChild(link);
     };
-    
 
-    const handleEdit = (item) => {
-        window.open(`/edit-page?url=${encodeURIComponent(item.url)}&lang=${item.language}`, '_blank');
-    };
+    const handleDelete = async () => {
+        try {
+            if (inputValue.trim().toLowerCase() === 'delete') {
+                await deleteWebsiteData(deleteId, token);  // Use the API function
 
-    const handleDelete = async (id) => {
-        
+                setData(data.filter(item => item._id !== deleteId));
+
+                toast({
+                    title: 'Deletion successful.',
+                    description: 'The item has been deleted.',
+                    status: 'success',
+                    duration: 5000,
+                    isClosable: true,
+                });
+                onClose();
+            } else {
+                toast({
+                    title: 'Invalid input',
+                    description: 'Please type "delete" to confirm.',
+                    status: 'error',
+                    duration: 3000,
+                    isClosable: true,
+                });
+            }
+        } catch (error) {
             toast({
-                title: 'Deletion successful.',
-                description: 'The item has been deleted.',
-                status: 'success',
+                title: 'Deletion failed.',
+                description: `Error: ${error.message}`,
+                status: 'error',
                 duration: 5000,
                 isClosable: true,
             });
-        
+        }
+    };
+
+    const openConfirmDialog = (id) => {
+        setDeleteId(id);
+        onOpen();
     };
 
     return (
@@ -165,29 +206,53 @@ const Dashboard = () => {
                         </Tr>
                     </Thead>
                     <Tbody>
-                        {data.map((item) => (
-                            <Tr key={item._id}>
-                                <Td>{item.url}</Td>
-                                <Td>{languageLookup[item.language] || item.language}</Td> {/* Map code to label */}
-                                <Td>
-                                    {item.editedHTML ?
-                                        (item.editedHTML.substring(0, 50) + '...') :
-                                        (item.translatedHTML.substring(0, 50) + '...')}
-                                </Td>
-                                <Td>
-                                    <Button colorScheme="blue" size="sm" mr={2} onClick={() => handleView(item)}>View</Button>
-                                    <Button colorScheme="green" size="sm" mr={2} onClick={() => handleExport(item)}>Export</Button>
-                                    <Button colorScheme="yellow" size="sm" mr={2} onClick={() => handleEdit(item)}>Edit</Button>
-                                </Td>
-
+                        {data.length > 0 ? (
+                            data.map((item) => (
+                                <Tr key={item._id}>
+                                    <Td>{item.url.substring(0, 30) + '...'}</Td>
+                                    <Td>{languageLookup[item.language] || item.language}</Td>
                                     <Td>
-                                        <Button colorScheme="red" size="sm" onClick={() => handleDelete(item._id)}>Delete</Button>
+                                        {item.editedHTML ?
+                                            (item.editedHTML.substring(0, 50) + '...') :
+                                            (item.translatedHTML.substring(0, 50) + '...')}
                                     </Td>
+                                    <Td>
+                                        <Button colorScheme="blue" size="sm" mr={2} mb={2} onClick={() => handleView(item)}>View</Button>
+                                        <Button colorScheme="green" size="sm" mr={2} mb={2} onClick={() => handleExport(item)}>Export</Button>
+                                    </Td>
+                                    <Td>
+                                        <Button colorScheme="red" size="sm" onClick={() => openConfirmDialog(item._id)}>Delete</Button>
+                                    </Td>
+                                </Tr>
+                            ))
+                        ) : (
+                            <Tr>
+                                <Td colSpan="5" textAlign="center">No data available</Td>
                             </Tr>
-                        ))}
+                        )}
                     </Tbody>
                 </Table>
             </Box>
+
+            {/* Confirmation Dialog */}
+            <Modal isOpen={isOpen} onClose={onClose}>
+                <ModalOverlay />
+                <ModalContent>
+                    <ModalHeader alignContent={'flex-start'}>Confirm Deletion</ModalHeader>
+                    <ModalBody>
+                        <Text mb={4}>Are you sure you want to delete this item? This action cannot be undone.</Text>
+                        <Input 
+                            placeholder='Type "delete" to confirm'
+                            value={inputValue}
+                            onChange={(e) => setInputValue(e.target.value)}
+                        />
+                    </ModalBody>
+                    <ModalFooter>
+                        <Button colorScheme="red" mr={3} onClick={handleDelete}>Delete</Button>
+                        <Button onClick={onClose}>Cancel</Button>
+                    </ModalFooter>
+                </ModalContent>
+            </Modal>
         </Box>
     );
 };

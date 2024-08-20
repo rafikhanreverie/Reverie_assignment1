@@ -22,8 +22,8 @@ const ProfileDrawer = ({ isOpen, onClose, btnRef, userData, logout }) => {
         >
             <DrawerOverlay />
             <DrawerContent>
-                <DrawerCloseButton />
-                <DrawerHeader>Profile Details</DrawerHeader>
+                {/* <DrawerCloseButton /> */}
+                <DrawerHeader fontSize={'20px'} >Profile Details</DrawerHeader>
 
                 <DrawerBody>
                     {userData ? (
@@ -38,7 +38,7 @@ const ProfileDrawer = ({ isOpen, onClose, btnRef, userData, logout }) => {
                                 </Text>
                             </Stack>
 
-                            <button className='logout-button' onClick={logout}>Logout</button>
+                            <Button className='logout-Button' onClick={logout} color={'white'} backgroundColor={'#e65c00'}>Logout</Button>
                         </div>
                     ) : (
                         <Text>Loading...</Text>
@@ -49,7 +49,7 @@ const ProfileDrawer = ({ isOpen, onClose, btnRef, userData, logout }) => {
                 </DrawerBody>
 
                 <DrawerFooter>
-                    <Button variant='outline' mr={3} onClick={onClose}>
+                    <Button variant='outline' mr={3} onClick={onClose} color='white'>
                         Cancel
                     </Button>
                 </DrawerFooter>

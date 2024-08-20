@@ -101,82 +101,175 @@
 //     }
 // }
 
-// module.exports = extractAndTranslateText;
-const puppeteer = require('puppeteer');
-const Translation = require('../models/Translation');
-
-async function extractAndTranslateText(url, targetLanguage, userId) {
-    try {
-        // Check if translation already exists in the database
-        const existingTranslation = await Translation.findOne({ url, language: targetLanguage, userId });
-        if (existingTranslation) {
-            console.log('Translation found in database');
-
-            // Return editedHTML if it exists, otherwise return translatedHTML
-            const htmlToReturn = existingTranslation.editedHTML 
-                ? existingTranslation.editedHTML 
-                : existingTranslation.translatedHTML;
-            
-            return { translatedHTML: htmlToReturn };
-        }
-
-        // Launch Puppeteer browser
-        const browser = await puppeteer.launch({ headless: true });
-        const page = await browser.newPage();
-
-        // Define regex to match email addresses and phone numbers
-        const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
-        const phoneRegex = /\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/g;
-
-        await page.exposeFunction('reverseText', (text) => {
-            const filteredText = text.replace(/[^a-zA-Z0-9\s]/g, '');
-
-            // Check if the filtered text matches email or phone number
-            if (emailRegex.test(text) || phoneRegex.test(text)) {
-                return text;
-            } else {
-                // Reverse the text otherwise
-                return filteredText.split('').reverse().join('');
-            }
-        });
-
-        // Go to the URL and wait until the network is idle
-        await page.goto(url, { waitUntil: 'networkidle2' });
-
-        // Extract and manipulate text nodes
-        const translatedHTML = await page.evaluate(async () => {
-            const textNodes = [];
-            const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
-            while (walker.nextNode()) {
-                textNodes.push(walker.currentNode);
-            }
-
-            for (const node of textNodes) {
-                const reversedText = await window.reverseText(node.nodeValue);
-                node.nodeValue = reversedText;
-            }
-
-            return document.documentElement.outerHTML;
-        });
-
-        // Close the browser
-        await browser.close();
-
-        // Use updateOne with upsert option to prevent duplicates
-        await Translation.updateOne(
-            { url, language: targetLanguage, userId },  // Query to match
-            { 
-                $set: { translatedHTML },               // Update the translatedHTML
-                $setOnInsert: { url, language: targetLanguage, userId }  // Set these fields on insert
-            },
-            { upsert: true }  // Insert if not found, otherwise update
-        );
-
-        return { translatedHTML };
-    } catch (error) {
-        console.error(`Error in extractAndTranslateText: ${error.message}`);
-        throw error;
-    }
-}
-
 module.exports = extractAndTranslateText;
+    const puppeteer = require('puppeteer');
+    const Translation = require('../models/Translation');
+
+    async function extractAndTranslateText(url, targetLanguage, userId) {
+        try {
+            // Check if translation already exists in the database
+            const existingTranslation = await Translation.findOne({ url, language: targetLanguage, userId });
+            if (existingTranslation) {
+                console.log('Translation found in database');
+
+                // Return editedHTML if it exists, otherwise return translatedHTML
+                const htmlToReturn = existingTranslation.editedHTML 
+                    ? existingTranslation.editedHTML 
+                    : existingTranslation.translatedHTML;
+                
+                return { translatedHTML: htmlToReturn };
+            }
+
+            // Launch Puppeteer browser
+            const browser = await puppeteer.launch({ headless: true });
+            const page = await browser.newPage();
+
+            // Define regex to match email addresses and phone numbers
+            const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
+            const phoneRegex = /\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/g;
+
+            await page.exposeFunction('reverseText', (text) => {
+                const filteredText = text.replace(/[^a-zA-Z0-9\s]/g, '');
+
+                // Check if the filtered text matches email or phone number
+                if (emailRegex.test(text) || phoneRegex.test(text)) {
+                    return text;
+                } else {
+                    // Reverse the text otherwise
+                    return filteredText.split('').reverse().join('');
+                }
+            });
+
+            // Go to the URL and wait until the network is idle
+            await page.goto(url, { waitUntil: 'networkidle2' });
+
+            // Extract and manipulate text nodes
+            const translatedHTML = await page.evaluate(async () => {
+                const textNodes = [];
+                const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
+                while (walker.nextNode()) {
+                    textNodes.push(walker.currentNode);
+                }
+
+                for (const node of textNodes) {
+                    const reversedText = await window.reverseText(node.nodeValue);
+                    node.nodeValue = reversedText;
+                }
+
+                return document.documentElement.outerHTML;
+            });
+
+            // Close the browser
+            await browser.close();
+
+            // Use updateOne with upsert option to prevent duplicates
+            await Translation.updateOne(
+                { url, language: targetLanguage, userId },  // Query to match
+                { 
+                    $set: { translatedHTML },               // Update the translatedHTML
+                    $setOnInsert: { url, language: targetLanguage, userId }  // Set these fields on insert
+                },
+                { upsert: true }  // Insert if not found, otherwise update
+            );
+
+            return { translatedHTML };
+        } catch (error) {
+            console.error(`Error in extractAndTranslateText: ${error.message}`);
+            throw error;
+        }
+    }
+
+    module.exports = extractAndTranslateText;
+
+
+//     const puppeteer = require('puppeteer');
+// const axios = require('axios');
+// const Translation = require('../models/Translation');
+
+// async function extractAndTranslateText(url, targetLanguage, userId) {
+//     try {
+//         // Check if translation already exists in the database
+//         const existingTranslation = await Translation.findOne({ url, language: targetLanguage, userId });
+//         if (existingTranslation) {
+//             console.log('Translation found in database');
+
+//             // Return editedHTML if it exists, otherwise return translatedHTML
+//             const htmlToReturn = existingTranslation.editedHTML 
+//                 ? existingTranslation.editedHTML 
+//                 : existingTranslation.translatedHTML;
+            
+//             return { translatedHTML: htmlToReturn };
+//         }
+
+//         // Launch Puppeteer browser
+//         const browser = await puppeteer.launch({ headless: true });
+//         const page = await browser.newPage();
+
+//         // Expose the translateText function to the page context
+//         await page.exposeFunction('translateText', async (text) => {
+//             try {
+//                 const response = await axios.post(
+//                     'https://revapi.reverieinc.com',
+//                     {
+//                         data: [text],
+//                     },
+//                     {
+//                         headers: {
+//                             'Content-Type': 'application/json',
+//                             'REV-API-KEY': '99425a49d90bbc4829af2934e823ce27b5b46a55',
+//                             'REV-APP-ID': 'rev.interntesting',
+//                             'src_lang': 'en',
+//                             'tgt_lang': targetLanguage,
+//                             'domain': '1',
+//                             'REV-APPNAME': 'localization',
+//                         },
+//                     }
+//                 );
+
+//                 return response.data.responseList[0].outString;
+//             } catch (error) {
+//                 console.error('Error in translateText:', error.response ? error.response.data : error.message);
+//                 return text; // Return the original text if translation fails
+//             }
+//         });
+
+//         // Go to the URL and wait until the network is idle
+//         await page.goto(url, { waitUntil: 'networkidle2' });
+
+//         // Extract and translate text nodes
+//         const translatedHTML = await page.evaluate(async () => {
+//             const textNodes = [];
+//             const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
+//             while (walker.nextNode()) {
+//                 textNodes.push(walker.currentNode);
+//             }
+
+//             for (const node of textNodes) {
+//                 const translatedText = await window.translateText(node.nodeValue);
+//                 node.nodeValue = translatedText;
+//             }
+
+//             return document.documentElement.outerHTML;
+//         });
+
+//         // Close the browser
+//         await browser.close();
+
+//         // Use updateOne with upsert option to prevent duplicates
+//         await Translation.updateOne(
+//             { url, language: targetLanguage, userId },  // Query to match
+//             { 
+//                 $set: { translatedHTML },               // Update the translatedHTML
+//                 $setOnInsert: { url, language: targetLanguage, userId }  // Set these fields on insert
+//             },
+//             { upsert: true }  // Insert if not found, otherwise update
+//         );
+
+//         return { translatedHTML };
+//     } catch (error) {
+//         console.error(`Error in extractAndTranslateText: ${error.message}`);
+//         throw error;
+//     }
+// }
+
+// module.exports = extractAndTranslateText;

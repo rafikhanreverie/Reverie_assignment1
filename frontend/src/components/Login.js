@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import {jwtDecode} from 'jwt-decode';
 import '../styles/login.css';
 import { GoogleLogin } from '@react-oauth/google';
-import { useToast } from '@chakra-ui/react';
+import { Button, useToast } from '@chakra-ui/react';
 import { AuthContext } from '../context/AuthContext';
 
 const Login = () => {
@@ -90,7 +90,7 @@ const Login = () => {
                         required 
                     />
                     <p>Don't have an account? <a href="/register">Register</a></p>
-                    <button type="submit">Login</button>
+                    <Button type="submit" size={'xl'}>Login</Button>
 
                     <div className="google-login-button-container">
                         <GoogleLogin

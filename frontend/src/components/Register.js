@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import '../styles/register.css';
 import {jwtDecode} from 'jwt-decode';
 import { GoogleLogin } from '@react-oauth/google';
-import { useToast } from '@chakra-ui/react';
+import { Button, useToast } from '@chakra-ui/react';
 const Register = () => {
     const toast = useToast();
     const [formData, setFormData] = useState({
@@ -118,7 +118,7 @@ const Register = () => {
                         placeholder="Password"
                         required 
                     />
-                    <button type="submit">Register</button>
+                    <Button type="submit">Register</Button>
                     <div className="redirect-link">
                             <p>Have an account? <a href="/login">Login here</a></p>
                         </div>

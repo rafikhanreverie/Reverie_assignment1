@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import {
     Box, Heading, Text, SimpleGrid, Button, Table, Thead, Tbody, Tr, Th, Td,
-    useToast, useDisclosure, Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalFooter, Input
+    useToast, useDisclosure, Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalFooter, Input,
+    useBreakpointValue,
+    HStack
 } from '@chakra-ui/react';
 import { useLocation } from 'react-router-dom';
 import { fetchWebsiteData, viewTranslatedWebsite, deleteWebsiteData } from '../api/dashboardAPI'; // Import API functions
@@ -44,6 +46,9 @@ const Dashboard = () => {
     const queryParams = new URLSearchParams(location.search);
     const userId = queryParams.get('userId');
 
+    // Determine table size based on screen size
+    const tableSize = useBreakpointValue({ base: 'sm', md: 'md' });
+
     useEffect(() => {
         const fetchData = async () => {
             if (userId) {
@@ -69,7 +74,7 @@ const Dashboard = () => {
 
     const handleView = async (item) => {
         try {
-            const htmlContent = await viewTranslatedWebsite(item.userId, item.url); // Use the API function
+            const htmlContent = await viewTranslatedWebsite(userId, item.url, item.language); // Ensure all parameters are passed
 
             // Open a new tab and write the HTML content
             const newWindow = window.open('', '_blank');
@@ -85,7 +90,13 @@ const Dashboard = () => {
             });
         } catch (error) {
             console.error('Error viewing the translated website:', error);
-            alert('An error occurred while trying to view the translated website.');
+            toast({
+                title: 'Error',
+                description: 'An error occurred while trying to view the translated website.',
+                status: 'error',
+                duration: 5000,
+                isClosable: true,
+            });
         }
     };
 
@@ -154,48 +165,47 @@ const Dashboard = () => {
     };
 
     return (
-        <Box p={8}>
+        <Box p={4}>
             {/* Header */}
-            <Heading as="h1" size="2xl" mb={6} textAlign="center">
+            <Heading as="h1" size="xl" mb={6} textAlign="center">
                 Dashboard
             </Heading>
 
             {/* Introduction or Welcome Text */}
-            <Text fontSize="xl" textAlign="center" mb={10}>
+            <Text fontSize={{ base: 'md', md: 'lg' }} textAlign="center" mb={8}>
                 Welcome to your dashboard! Here you can manage your settings, view analytics, and more.
             </Text>
 
             {/* Example Sections */}
-            <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={10}>
-                <Box p={5} shadow="md" borderWidth="1px" borderRadius="md">
-                    <Heading fontSize="xl">Profile Overview</Heading>
-                    <Text mt={4}>
+            <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
+                <Box p={4} shadow="md" borderWidth="1px" borderRadius="md">
+                    <Heading fontSize={{ base: 'lg', md: 'xl' }}>Profile Overview</Heading>
+                    <Text mt={4} fontSize={{ base: 'sm', md: 'md' }}>
                         Manage your profile information, update details, and view your recent activity.
                     </Text>
-                    <Button colorScheme="orange" mt={4}>Go to Profile</Button>
+                    <Button colorScheme="orange" mt={4} w="full">Go to Profile</Button>
                 </Box>
 
-                <Box p={5} shadow="md" borderWidth="1px" borderRadius="md">
-                    <Heading fontSize="xl">Analytics</Heading>
-                    <Text mt={4}>
+                <Box p={4} shadow="md" borderWidth="1px" borderRadius="md">
+                    <Heading fontSize={{ base: 'lg', md: 'xl' }}>Analytics</Heading>
+                    <Text mt={4} fontSize={{ base: 'sm', md: 'md' }}>
                         View your usage analytics, track performance, and monitor your progress.
                     </Text>
-                    <Button colorScheme="orange" mt={4}>View Analytics</Button>
+                    <Button colorScheme="orange" mt={4} w="full">View Analytics</Button>
                 </Box>
 
-                <Box p={5} shadow="md" borderWidth="1px" borderRadius="md">
-                    <Heading fontSize="xl">Settings</Heading>
-                    <Text mt={4}>
+                <Box p={4} shadow="md" borderWidth="1px" borderRadius="md">
+                    <Heading fontSize={{ base: 'lg', md: 'xl' }}>Settings</Heading>
+                    <Text mt={4} fontSize={{ base: 'sm', md: 'md' }}>
                         Customize your experience, manage preferences, and adjust your settings.
                     </Text>
-                    <Button colorScheme="orange" mt={4}>Go to Settings</Button>
+                    <Button colorScheme="orange" mt={4} w="full">Go to Settings</Button>
                 </Box>
             </SimpleGrid>
-
             {/* Data Table */}
-            <Box mt={10}>
+            <Box mt={8} overflowX="auto">
                 <Heading as="h2" size="lg" mb={4}>Website Data</Heading>
-                <Table variant="simple">
+                <Table variant="simple" size={tableSize}>
                     <Thead>
                         <Tr>
                             <Th>URL</Th>
@@ -209,52 +219,46 @@ const Dashboard = () => {
                         {data.length > 0 ? (
                             data.map((item) => (
                                 <Tr key={item._id}>
-                                    <Td>{item.url.substring(0, 30) + '...'}</Td>
+                                    <Td maxW="200px" isTruncated>{item.url}</Td>
                                     <Td>{languageLookup[item.language] || item.language}</Td>
+                                    <Td maxW="200px" isTruncated>{item.editedHTML}</Td>
                                     <Td>
-                                        {item.editedHTML ?
-                                            (item.editedHTML.substring(0, 50) + '...') :
-                                            (item.translatedHTML.substring(0, 50) + '...')}
+                                        <HStack>
+                                            <Button colorScheme="blue" onClick={() => handleView(item)} size="sm" >View</Button>
+                                            <Button colorScheme="green" onClick={() => handleExport(item)} size="sm" > Export</Button>
+                                        </HStack>
                                     </Td>
                                     <Td>
-                                        <Button colorScheme="blue" size="sm" mr={2} mb={2} onClick={() => handleView(item)}>View</Button>
-                                        <Button colorScheme="green" size="sm" mr={2} mb={2} onClick={() => handleExport(item)}>Export</Button>
-                                    </Td>
-                                    <Td>
-                                        <Button colorScheme="red" size="sm" onClick={() => openConfirmDialog(item._id)}>Delete</Button>
+                                        <Button colorScheme="red" onClick={() => openConfirmDialog(item._id)} size="sm">Delete</Button>
                                     </Td>
                                 </Tr>
                             ))
                         ) : (
                             <Tr>
-                                <Td colSpan="5" textAlign="center">No data available</Td>
+                                <Td colSpan={5}>No data available</Td>
                             </Tr>
                         )}
                     </Tbody>
                 </Table>
             </Box>
 
-            {/* Confirmation Dialog */}
+            {/* Delete Confirmation Modal */}
             <Modal isOpen={isOpen} onClose={onClose}>
                 <ModalOverlay />
                 <ModalContent>
-                    <ModalHeader alignContent={'flex-start'}>Confirm Deletion</ModalHeader>
+                    <ModalHeader>Confirm Deletion</ModalHeader>
                     <ModalBody>
-                        <Text mb={4}>Are you sure you want to delete this item? This action cannot be undone.</Text>
-                        <Input 
-                            placeholder='Type "delete" to confirm'
-                            value={inputValue}
-                            onChange={(e) => setInputValue(e.target.value)}
-                        />
+                        <Text>Are you sure you want to delete this item? Type 'delete' to confirm.</Text>
+                        <Input mt={4} value={inputValue} onChange={(e) => setInputValue(e.target.value)} />
                     </ModalBody>
                     <ModalFooter>
-                        <Button colorScheme="red" mr={3} onClick={handleDelete}>Delete</Button>
-                        <Button onClick={onClose}>Cancel</Button>
+                        <Button colorScheme="red" onClick={handleDelete}>Delete</Button>
+                        <Button onClick={onClose} ml={3}>Cancel</Button>
                     </ModalFooter>
                 </ModalContent>
             </Modal>
         </Box>
     );
-};
+}
 
 export default Dashboard;

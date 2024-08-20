@@ -11,24 +11,25 @@ export const fetchWebsiteData = async (userId) => {
         });
         return response.data;
     } catch (error) {
-        throw new Error(error.message);
+        console.error('Error fetching website data:', error.response?.data || error.message);
+        throw new Error('Failed to fetch website data');
     }
 };
 
 // View translated website
-export const viewTranslatedWebsite = async (userId, url) => {
+export const viewTranslatedWebsite = async (userId, url, language) => {
     try {
-        const response = await fetch(`${BASE_URL}/view-translated-website?userId=${userId}&url=${encodeURIComponent(url)}`);
-        if (!response.ok) {
-            throw new Error('Failed to fetch translated website');
-        }
-        return await response.text();
+        const response = await axios.get(`${BASE_URL}/view-translated-website`, {
+            params: { userId, url, language } // Ensure all parameters are included
+        });
+        return response.data;
     } catch (error) {
-        throw new Error(error.message);
+        console.error('Error viewing translated website:', error.response?.data || error.message);
+        throw new Error('Failed to fetch translated website');
     }
 };
 
-// Delete website data
+
 export const deleteWebsiteData = async (id, token) => {
     try {
         await axios.delete(`${BASE_URL}/fetch-website-data/${id}`, {

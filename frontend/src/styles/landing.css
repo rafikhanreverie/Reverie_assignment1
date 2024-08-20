@@ -153,3 +153,32 @@ header {
         transform: translateY(-100px);
     }
 }
+
+
+/* make it responsive */
+@media (max-width: 768px) {
+
+    .landing-main {
+        flex-direction: column;
+    }
+
+    .text {
+        font-size: 50px;
+        margin-top: 30px;
+    }
+
+    .rocket {
+        left: 0;
+    }
+
+    .cloud {
+        bottom: -200px;
+    }
+}
+
+/* for smaller device also */
+@media (max-width: 480px) {
+    .text {
+        font-size: 30px;
+    }
+}

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
 import { extractAndTranslateText } from '../api/translate';
 import { AuthContext } from '../context/AuthContext';
-import { Button, HStack, useDisclosure } from '@chakra-ui/react';
+import { Button, HStack, useDisclosure, Stack,Heading } from '@chakra-ui/react';
 import { FaUser } from 'react-icons/fa';
 import '../styles/home.css';
 import ProfileDrawer from '../components/ProfileDrawer';
@@ -37,16 +37,16 @@ const Home = () => {
         { code: 'en', label: 'English' }
     ];
 
-    const alertShown = useRef(false);
+    // const alertShown = useRef(false);
 
-    useEffect(() => {
-        if (!alertShown.current) {
-            const browserLanguage = navigator.language.split('-')[0];
-            const defaultLanguage = languages.find(lang => lang.code === browserLanguage) ? browserLanguage : 'en';
-            setLanguage(defaultLanguage);
-            alertShown.current = true;
-        }
-    }, []);
+    // useEffect(() => {
+    //     if (!alertShown.current) {
+    //         const browserLanguage = navigator.language.split('-')[0];
+    //         const defaultLanguage = languages.find(lang => lang.code === browserLanguage) ? browserLanguage : 'en';
+    //         setLanguage(defaultLanguage);
+    //         alertShown.current = true;
+    //     }
+    // }, []);
 
     useEffect(() => {
         const getUserData = async () => {
@@ -135,71 +135,80 @@ const Home = () => {
     };
 
     return (
-        <div className="home-container">
-            <div className="header">
-                <Button ref={btnRef} onClick={onOpen} className="logout-button" leftIcon={<FaUser />}>
-                    Profile
-                </Button>
-                <Button onClick={toggleEditMode} className="live-edit-button">
-                    {editMode ? 'Save Edit' : 'Enable Live Edit'}
-                </Button>
+        <>
+
+            <div className="home-container">
+                <HStack className="header" position={'right'}>
+                    <Heading size='lg' color={'#e65c00'}>
+                        Website Localization    
+                    </Heading>
+                    <Button ref={btnRef} onClick={onOpen} leftIcon={<FaUser />} color={'white'} backgroundColor={'#e65c00'}>
+                        Profile
+                    </Button>
+                    {/* <Button onClick={toggleEditMode} color={'white'} backgroundColor={'#e65c00'}>
+                        {editMode ? 'Save Edit' : ' Live Edit'}
+                    </Button> */}
+                </HStack>
+
+                <form onSubmit={onSubmit}>
+                    <div>
+                        <label htmlFor="url">Website URL:</label>
+                        <input
+                            type="text"
+                            id="url"
+                            value={url}
+                            onChange={(e) => setUrl(e.target.value)}
+                            placeholder="Enter website URL"
+                            required
+                        />
+                    </div>
+                    <div>
+                        <label htmlFor="language">Select Language:</label>
+                        <select
+                            id="language"
+                            value={language}
+                            onChange={(e) => setLanguage(e.target.value)}
+                            required
+                        >
+                            <option value="" disabled>Select a language</option>
+                            {languages.map((lang) => (
+                                <option key={lang.code} value={lang.code}>
+                                    {lang.label}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                    <Button color={'white'} backgroundColor={'#e65c00'} type="submit">Submit</Button>
+                </form>
+
+                {error && <div className="error-message">{error}</div>}
+                {translatedHTML && (
+                    <div className="iframe-container">
+                        <HStack>
+                            <Button onClick={handleView} color={'white'} backgroundColor={'#e65c00'}>View Page</Button>
+                            <Button onClick={toggleEditMode} color={'white'} backgroundColor={'#e65c00'}>
+                        {editMode ? 'Save Edit' : ' Live Edit'}
+                    </Button>
+                        </HStack>
+                        <iframe
+                            ref={iframeRef}
+                            srcDoc={translatedHTML}
+                            title="Translated Page"
+                            width="100%"
+                            height="500px"
+                            style={{ border: 'none', marginTop: '20px' }}
+                        />
+                    </div>
+                )}
+                <ProfileDrawer
+                    isOpen={isOpen}
+                    onClose={onClose}
+                    btnRef={btnRef}
+                    userData={userData}
+                    logout={logout}
+                />
             </div>
-
-            <form onSubmit={onSubmit}>
-                <div>
-                    <label htmlFor="url">Website URL:</label>
-                    <input
-                        type="text"
-                        id="url"
-                        value={url}
-                        onChange={(e) => setUrl(e.target.value)}
-                        placeholder="Enter website URL"
-                        required
-                    />
-                </div>
-                <div>
-                    <label htmlFor="language">Select Language:</label>
-                    <select
-                        id="language"
-                        value={language}
-                        onChange={(e) => setLanguage(e.target.value)}
-                        required
-                    >
-                        <option value="" disabled>Select a language</option>
-                        {languages.map((lang) => (
-                            <option key={lang.code} value={lang.code}>
-                                {lang.label}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-                <button id="btn-submit" type="submit">Submit</button>
-            </form>
-
-            {error && <div className="error-message">{error}</div>}
-            {translatedHTML && (
-                <div className="iframe-container">
-                    <HStack>
-                        <Button onClick={handleView}>View Page</Button>
-                    </HStack>
-                    <iframe
-                        ref={iframeRef}
-                        srcDoc={translatedHTML}
-                        title="Translated Page"
-                        width="100%"
-                        height="500px"
-                        style={{ border: 'none', marginTop: '20px' }}
-                    />
-                </div>
-            )}
-            <ProfileDrawer
-                isOpen={isOpen}
-                onClose={onClose}
-                btnRef={btnRef}
-                userData={userData}
-                logout={logout}
-            />
-        </div>
+        </>
     );
 };
 

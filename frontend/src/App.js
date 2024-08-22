@@ -32,6 +32,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
 import Dashboard from './pages/Dashboard';
 
+
 const App = () => {
   return (
     <Router>
@@ -39,6 +40,7 @@ const App = () => {
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
+          
           <Route path="/register" element={<Register />} />
           <Route path="/home" element={
             <ProtectedRoute>

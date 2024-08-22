@@ -46,6 +46,8 @@ export const fetchTextDictionary = async (userId, url, language) => {
   };
   
   export const updateTextDictionary = async (userId, url, language, dictionary) => {
+    console.log(dictionary);
+    
     try {
       const response = await axios.put('http://localhost:3001/api/dashboard/text-dictionary', {
         userId,

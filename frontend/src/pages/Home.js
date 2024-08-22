@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
 import { extractAndTranslateText } from '../api/translate';
 import { AuthContext } from '../context/AuthContext';
-import { Button, HStack, useDisclosure, Stack,Heading } from '@chakra-ui/react';
+import { Button, HStack, useDisclosure,Heading } from '@chakra-ui/react';
 import { FaUser } from 'react-icons/fa';
 import '../styles/home.css';
 import ProfileDrawer from '../components/ProfileDrawer';
@@ -125,8 +125,15 @@ const Home = () => {
 
     const handleView = async () => {
         try {
+            if (!url || !language || !userData?._id) {
+                alert('Please ensure that you have entered a valid URL, selected a language, and are logged in.');
+                return;
+            }
+    
             // Construct the URL to view the translated website
-            const viewUrl = `http://localhost:3001/api/dashboard/view-translated-website?userId=${userData?._id}&url=${encodeURIComponent(url)}&language=${language}`;
+            const viewUrl = `http://localhost:3001/api/dashboard/view-translated-website?userId=${userData._id}&url=${encodeURIComponent(url)}&language=${language}`;
+            
+            // Open the translated webpage in a new tab
             window.open(viewUrl, '_blank');
         } catch (error) {
             console.error('Error viewing the translated website:', error);
@@ -186,9 +193,9 @@ const Home = () => {
                     <div className="iframe-container">
                         <HStack>
                             <Button onClick={handleView} color={'white'} backgroundColor={'#e65c00'}>View Page</Button>
-                            <Button onClick={toggleEditMode} color={'white'} backgroundColor={'#e65c00'}>
+                            {/* <Button onClick={toggleEditMode} color={'white'} backgroundColor={'#e65c00'}>
                         {editMode ? 'Save Edit' : ' Live Edit'}
-                    </Button>
+                    </Button> */}
                         </HStack>
                         <iframe
                             ref={iframeRef}

@@ -463,7 +463,136 @@
 // }
 
 // module.exports = extractAndTranslateText;
+// 
 
+// The main code never update or delete this part
+
+
+// const TextDictionary = require('../models/TextDictionary');
+// const puppeteer = require('puppeteer');
+// const { URL } = require('url');
+
+// async function extractAndTranslateText(url, targetLanguage, userId) {
+//     try {
+//         const existingDictionary = await TextDictionary.findOne({ url, language: targetLanguage, userId });
+//         if (existingDictionary) {
+//             console.log('Dictionary found in database');
+//             const dictionaryMap = new Map(existingDictionary.dictionary.map(entry => [entry.key, entry.value]));
+
+//             const browser = await puppeteer.launch({ headless: true });
+//             const page = await browser.newPage();
+
+//             await page.goto(url, { waitUntil: 'networkidle2' });
+
+//             const translatedHTML = await page.evaluate((dictionary, baseUrl) => {
+//                 const textNodes = [];
+//                 const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
+//                 while (walker.nextNode()) {
+//                     textNodes.push(walker.currentNode);
+//                 }
+
+//                 for (const node of textNodes) {
+//                     const originalText = node.nodeValue.trim();
+//                     if (dictionary[originalText]) {
+//                         node.nodeValue = dictionary[originalText];
+//                     }
+//                 }
+
+//                 // Modify all links to be fully qualified URLs
+//                 const links = Array.from(document.querySelectorAll('a[href]'));
+//                 links.forEach(link => {
+//                     const href = link.getAttribute('href');
+//                     const absoluteUrl = new URL(href, baseUrl).href;
+//                     link.setAttribute('href', absoluteUrl);
+//                 });
+
+//                 return document.documentElement.outerHTML;
+//             }, Object.fromEntries(dictionaryMap), url);
+
+//             await browser.close();
+//             return { translatedHTML };
+//         }
+
+//         const browser = await puppeteer.launch({ headless: true });
+//         const page = await browser.newPage();
+
+//         const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
+//         const phoneRegex = /\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/g;
+
+//         // Regex patterns to ignore certain tags and attributes
+//         const ignoreRegexPatterns = [
+//             /<iframe[^>]*src="https:\/\/www\.googletagmanager\.com\/ns\.html\?id=GTM-NXK9CJ"[^>]*><\/iframe>/g,
+//             /→/g,
+//             /©/g,
+//             // Add more patterns as needed
+//         ];
+
+//         const textDictionary = [];
+
+//         await page.exposeFunction('processText', async (text) => {
+//             const trimmedText = text.trim();
+//             if (trimmedText.length === 0 || emailRegex.test(trimmedText) || phoneRegex.test(trimmedText)) {
+//                 return trimmedText;
+//             }
+
+//             // Ignore text matching any of the patterns
+//             for (const pattern of ignoreRegexPatterns) {
+//                 if (pattern.test(trimmedText)) {
+//                     return trimmedText;
+//                 }
+//             }
+
+//             const filteredText = trimmedText.replace(/[^a-zA-Z0-9\s]/g, '');
+//             const reversedText = filteredText.split('').reverse().join('');
+
+//             textDictionary.push({ key: trimmedText, value: reversedText });
+
+//             return reversedText;
+//         });
+
+//         await page.goto(url, { waitUntil: 'networkidle2' });
+
+//         const translatedHTML = await page.evaluate(async (baseUrl) => {
+//             const textNodes = [];
+//             const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
+//             while (walker.nextNode()) {
+//                 textNodes.push(walker.currentNode);
+//             }
+
+//             for (const node of textNodes) {
+//                 const translatedText = await window.processText(node.nodeValue);
+//                 node.nodeValue = translatedText;
+//             }
+
+//             // Modify all links to be fully qualified URLs
+//             const links = Array.from(document.querySelectorAll('a[href]'));
+//             links.forEach(link => {
+//                 const href = link.getAttribute('href');
+//                 const absoluteUrl = new URL(href, baseUrl).href;
+//                 link.setAttribute('href', absoluteUrl);
+//             });
+
+//             return document.documentElement.outerHTML;
+//         }, url);
+
+//         await browser.close();
+
+//         await TextDictionary.updateOne(
+//             { url, language: targetLanguage, userId },
+//             { $set: { dictionary: textDictionary } },
+//             { upsert: true }
+//         );
+
+//         return { translatedHTML };
+//     } catch (error) {
+//         console.error(`Error in extractAndTranslateText: ${error.message}`);
+//         throw error;
+//     }
+// }
+
+// module.exports = extractAndTranslateText;
+
+//next updated one
 
 const TextDictionary = require('../models/TextDictionary');
 const puppeteer = require('puppeteer');
@@ -472,22 +601,35 @@ const { URL } = require('url');
 async function extractAndTranslateText(url, targetLanguage, userId) {
     try {
         const existingDictionary = await TextDictionary.findOne({ url, language: targetLanguage, userId });
+        const browser = await puppeteer.launch({ headless: true });
+        const page = await browser.newPage();
+
         if (existingDictionary) {
             console.log('Dictionary found in database');
             const dictionaryMap = new Map(existingDictionary.dictionary.map(entry => [entry.key, entry.value]));
 
-            const browser = await puppeteer.launch({ headless: true });
-            const page = await browser.newPage();
-
             await page.goto(url, { waitUntil: 'networkidle2' });
 
-            const translatedHTML = await page.evaluate((dictionary, baseUrl) => {
+            const translatedHTML = await page.evaluate((dictionary, baseUrl, serverPort, userId) => {
                 const textNodes = [];
+                const hrefLinks = [];
                 const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
+
                 while (walker.nextNode()) {
                     textNodes.push(walker.currentNode);
                 }
 
+                // Modify all links to be fully qualified URLs and prepare for click handling
+                const links = Array.from(document.querySelectorAll('a[href]'));
+                links.forEach(link => {
+                    const href = link.getAttribute('href');
+                    const absoluteUrl = new URL(href, baseUrl).href;
+                    link.setAttribute('href', absoluteUrl);
+                    link.setAttribute('target', '_self');
+                    hrefLinks.push(absoluteUrl);
+                });
+
+                // Reverse text based on the existing dictionary
                 for (const node of textNodes) {
                     const originalText = node.nodeValue.trim();
                     if (dictionary[originalText]) {
@@ -495,33 +637,57 @@ async function extractAndTranslateText(url, targetLanguage, userId) {
                     }
                 }
 
-                // Modify all links to be fully qualified URLs
-                const links = Array.from(document.querySelectorAll('a[href]'));
-                links.forEach(link => {
-                    const href = link.getAttribute('href');
-                    const absoluteUrl = new URL(href, baseUrl).href;
-                    link.setAttribute('href', absoluteUrl);
-                });
+                // Inject a script to handle link clicks and navigate with reverse text
+                const script = `
+                    document.addEventListener('click', async function(event) {
+                        const link = event.target.closest('a');
+                        if (link) {
+                            event.preventDefault(); // Prevent the default action
+
+                            const clickedLink = link.href;
+
+                            try {
+                                const response = await fetch('http://localhost:${serverPort}/api/textextract/extract-translate-text', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                    },
+                                    body: JSON.stringify({ url: clickedLink, targetLanguage: '${targetLanguage}', userId: '${userId}' })
+                                });
+
+                                if (response.ok) {
+                                    const data = await response.json();
+                                    const newDoc = document.open();
+                                    newDoc.write(data.translatedHTML);
+                                    newDoc.close();
+                                } else {
+                                    console.error('Failed to fetch translated page');
+                                }
+                            } catch (error) {
+                                console.error('Error fetching translated page:', error);
+                            }
+                        }
+                    });
+                `;
+
+                const scriptElement = document.createElement('script');
+                scriptElement.textContent = script;
+                document.body.appendChild(scriptElement);
 
                 return document.documentElement.outerHTML;
-            }, Object.fromEntries(dictionaryMap), url);
+            }, Object.fromEntries(dictionaryMap), url, process.env.PORT || 3000, userId);
 
             await browser.close();
             return { translatedHTML };
         }
 
-        const browser = await puppeteer.launch({ headless: true });
-        const page = await browser.newPage();
-
         const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
         const phoneRegex = /\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/g;
 
-        // Regex patterns to ignore certain tags and attributes
         const ignoreRegexPatterns = [
             /<iframe[^>]*src="https:\/\/www\.googletagmanager\.com\/ns\.html\?id=GTM-NXK9CJ"[^>]*><\/iframe>/g,
             /→/g,
             /©/g,
-            // Add more patterns as needed
         ];
 
         const textDictionary = [];
@@ -532,7 +698,6 @@ async function extractAndTranslateText(url, targetLanguage, userId) {
                 return trimmedText;
             }
 
-            // Ignore text matching any of the patterns
             for (const pattern of ignoreRegexPatterns) {
                 if (pattern.test(trimmedText)) {
                     return trimmedText;
@@ -549,8 +714,9 @@ async function extractAndTranslateText(url, targetLanguage, userId) {
 
         await page.goto(url, { waitUntil: 'networkidle2' });
 
-        const translatedHTML = await page.evaluate(async (baseUrl) => {
+        const translatedHTML = await page.evaluate(async (baseUrl, serverPort, targetLanguage, userId) => {
             const textNodes = [];
+            const hrefLinks = [];
             const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
             while (walker.nextNode()) {
                 textNodes.push(walker.currentNode);
@@ -561,16 +727,55 @@ async function extractAndTranslateText(url, targetLanguage, userId) {
                 node.nodeValue = translatedText;
             }
 
-            // Modify all links to be fully qualified URLs
+            // Modify all links to be fully qualified URLs and prepare for click handling
             const links = Array.from(document.querySelectorAll('a[href]'));
             links.forEach(link => {
                 const href = link.getAttribute('href');
                 const absoluteUrl = new URL(href, baseUrl).href;
                 link.setAttribute('href', absoluteUrl);
+                link.setAttribute('target', '_self');
+                hrefLinks.push(absoluteUrl);
             });
 
+            // Inject a script to handle link clicks and navigate with reverse text
+            const script = `
+                document.addEventListener('click', async function(event) {
+                    const link = event.target.closest('a');
+                    if (link) {
+                        event.preventDefault(); // Prevent the default action
+
+                        const clickedLink = link.href;
+
+                        try {
+                            const response = await fetch('http://localhost:${serverPort}/api/textextract/extract-translate-text', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({ url: clickedLink, targetLanguage: '${targetLanguage}', userId: '${userId}' })
+                            });
+
+                            if (response.ok) {
+                                const data = await response.json();
+                                const newDoc = document.open();
+                                newDoc.write(data.translatedHTML);
+                                newDoc.close();
+                            } else {
+                                console.error('Failed to fetch translated page');
+                            }
+                        } catch (error) {
+                            console.error('Error fetching translated page:', error);
+                        }
+                    }
+                });
+            `;
+
+            const scriptElement = document.createElement('script');
+            scriptElement.textContent = script;
+            document.body.appendChild(scriptElement);
+
             return document.documentElement.outerHTML;
-        }, url);
+        }, url, process.env.PORT || 3000, targetLanguage, userId);
 
         await browser.close();
 
